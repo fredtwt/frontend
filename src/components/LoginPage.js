@@ -15,27 +15,31 @@ import axios from "axios";
 import { URL_USER_SVC } from "../configs"
 import {
 	STATUS_CODE_CREATED,
-	FIREBASE_EMAIL_EXISTS,
-	FIREBASE_INVALID_EMAIL
+	FIREBASE_INVALID_EMAIL,
+	FIREBASE_USER_NOT_FOUND,
+	FIREBASE_WRONG_PASSWORD
 } from "../constants"
 
-function SignupPage() {
+function LoginPage() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [dialogTitle, setDialogTitle] = useState("");
 	const [dialogMsg, setDialogMsg] = useState("");
-	const [isSignupSuccess, setIsSignupSuccess] = useState(false);
+	const [isLoginSuccess, setIsLoginSuccess] = useState(false);
 
-	const handleSignup = async () => {
-		setIsSignupSuccess(false)
-		const res = await axios.post(URL_USER_SVC + '/signup', { email, password })
+	const handleLogin = async () => {
+		setIsLoginSuccess(false)
+		const res = await axios.post(URL_USER_SVC + '/login', { email, password })
 			.catch((err) => {
 				let output
 				let errorCode = err.response.data.code
 				switch (errorCode) {
-					case FIREBASE_EMAIL_EXISTS:
-						output = "Email is already in use, please use a different one."
+					case FIREBASE_USER_NOT_FOUND:
+						output = "Email is not registered as a user!"
+						break;
+					case FIREBASE_WRONG_PASSWORD:
+						output = "Password is incorrect!"
 						break;
 					case FIREBASE_INVALID_EMAIL:
 						output = "Email is of an invalid format"
@@ -48,7 +52,7 @@ function SignupPage() {
 			})
 		if (res && res.status === STATUS_CODE_CREATED) {
 			setSuccessDialog(res.data.message)
-			setIsSignupSuccess(true)
+			setIsLoginSuccess(true)
 		}
 	}
 
@@ -69,7 +73,7 @@ function SignupPage() {
 	return (
 		<Box display={"flex"} flexDirection={"column"} width={"30%"}>
 			<Typography variant={"h3"} marginBottom={"2rem"}>
-				Sign Up
+				Login
 			</Typography>
 			<TextField
 				label="Email"
@@ -88,13 +92,13 @@ function SignupPage() {
 				sx={{ marginBottom: "2rem" }}
 			/>
 			<Box display={"flex"} flexDirection={"row"} justifyContent={"flex-end"}>
-				<Button variant={"outlined"} onClick={handleSignup}>
-					Sign up
+				<Button variant={"outlined"} onClick={handleLogin}>
+					Login
 				</Button>
 			</Box>
 			<Box display={"flex"} flexDirection={"row"} justifyContent={"flex-end"}>
-				<Button variant={"outlined"} component={Link} to="/login">
-					Have an account?
+				<Button variant={"outlined"} component={Link} to="/signup">
+					Register new account
 				</Button>
 			</Box>
 
@@ -104,12 +108,12 @@ function SignupPage() {
 					<DialogContentText>{dialogMsg}</DialogContentText>
 				</DialogContent>
 				<DialogActions>
-					{isSignupSuccess ? (
-						<Button component={Link} to="/login">
-							Log in
+					{isLoginSuccess ? (
+						<Button onClick={closeDialog}>
+							Done
 						</Button>
 					) : (
-						<Button onClick={closeDialog}>Done</Button>
+						<Button onClick={closeDialog}>Try again</Button>
 					)}
 				</DialogActions>
 			</Dialog>
@@ -117,4 +121,4 @@ function SignupPage() {
 	);
 }
 
-export default SignupPage;
+export default LoginPage;
